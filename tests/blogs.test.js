@@ -14,8 +14,6 @@ afterEach(async () => {
 	console.log('out');
 });
 
-
-
 describe('When logged in', async () => {
 	beforeEach(async () => {
 		await page.login();
@@ -33,15 +31,28 @@ describe('When logged in', async () => {
 	describe('And using valid input', async () => {
 		beforeEach(async () => {
 			await page.type('.title input', 'My Title');
+			console.log('Cliiiick1');
 			await page.type('.content input', 'My Content');
+			console.log('Cliiiick2');
 			await page.click('form button');
 		});
 
-		test('Submitting takes user', async () => {
+		test('Submitting takes user to review screen', async () => {
 			const text = await page.getContentOf('h5');
 
 			expect(text).toEqual('Please confirm your entries');
 			console.log('text', text);
+		});
+
+		test('Submitting then saving adds blog to index page', async () => {
+			await page.click('button.green');
+			await page.waitFor('.card');
+
+			const title = await page.getContentOf('.card-title');
+			const content = await page.getContentOf('p');
+
+			expect(title).toEqual('My Title');
+			expect(content).toEqual('My Content');
 		});
 	});
 
@@ -58,5 +69,38 @@ describe('When logged in', async () => {
 			expect(titleError).toEqual('You must provide a value');
 			expect(contentError).toEqual('You must provide a value');
 		});
+	});
+});
+
+describe('User is not logged in', async () => {
+	test('User cannot create blog posts', async () => {
+		const result = await page.evaluate(
+			() => {
+				 return fetch('/api/blogs', {
+					method: 'POST',
+					crendentials: 'same-origin',
+					headers: {
+						'Content-Type': 'application/json'
+					},
+					body: JSON.stringify({title:'My Title', content: 'My Content'})
+				}).then(res => res.json());
+			}
+		);
+		expect(result).toEqual({ error: 'You must log in!'})
+	});
+
+	test.only('User cannot get a list of posts', async () => {
+		const result = await page.evaluate(
+			() => {
+				 return fetch('/api/blogs', {
+					method: 'GET',
+					crendentials: 'same-origin',
+					headers: {
+						'Content-Type': 'application/json'
+					}
+				}).then(res => res.json());
+			}
+		);
+		expect(result).toEqual({ error: 'You must log in!'})
 	});
 });

@@ -11,7 +11,7 @@ mongoose.Query.prototype.cache = function(options = {}) {
 	this.useCache = true;
 	this.hashKey = JSON.stringify(options.key || ''); 
 
-	return this;// so the function be chainable 
+	return this;//so the function be chainable 
 }
 
 mongoose.Query.prototype.exec = async function() {
